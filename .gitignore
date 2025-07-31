@@ -1,0 +1,299 @@
+# =============================================================================
+# MLOps Project .gitignore for Hail Damage Detection
+# Protects large files, secrets, and unnecessary artifacts from GitHub
+# =============================================================================
+
+# =============================================================================
+# TERRAFORM
+# =============================================================================
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate.d/
+
+# =============================================================================
+# PYTHON & ML
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+conda-env/
+
+# =============================================================================
+# LARGE DATA FILES & MODEL ARTIFACTS
+# =============================================================================
+
+# Raw datasets (can be very large)
+data/processed/
+data/raw/
+data/models/
+data/checkpoints/
+data/cache/
+
+# Model files (can be GB in size)
+*.pt
+*.pth
+*.h5
+*.pkl
+*.joblib
+*.onnx
+*.pb
+*.tflite
+model.tar.gz
+*.safetensors
+
+# Training outputs
+runs/
+outputs/
+models/
+checkpoints/
+logs/
+wandb/
+mlruns/
+
+# Large image datasets
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# =============================================================================
+# AWS & CLOUD CREDENTIALS
+# =============================================================================
+.aws/
+aws-credentials
+*.pem
+*.key
+*.crt
+.boto
+
+# =============================================================================
+# SECRETS & ENVIRONMENT FILES
+# =============================================================================
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+secrets.txt
+config.json
+credentials.json
+service-account.json
+
+# API keys and tokens
+*.key
+*.token
+api_keys.txt
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+.dockerignore
+docker-compose.override.yml
+
+# =============================================================================
+# JUPYTER NOTEBOOKS
+# =============================================================================
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# Jupyter Notebook outputs (can be large)
+**/output_*
+**/outputs/
+
+# =============================================================================
+# IDE & EDITOR FILES
+# =============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.spyderproject
+.spyproject
+
+# PyCharm
+.idea/
+
+# =============================================================================
+# OS GENERATED FILES
+# =============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# =============================================================================
+# MACHINE LEARNING SPECIFIC
+# =============================================================================
+
+# MLflow
+mlruns/
+mlflow.db
+.mlflow/
+
+# Weights & Biases
+wandb/
+
+# TensorBoard logs
+logs/
+tensorboard/
+
+# DVC (Data Version Control)
+.dvc
+.dvcignore
+
+# =============================================================================
+# STREAMLIT
+# =============================================================================
+.streamlit/secrets.toml
+.streamlit/config.toml
+
+# =============================================================================
+# LARGE SYNTHETIC DATA
+# =============================================================================
+# Protect large synthetic datasets but allow small samples
+data/synthetic/*.zip
+data/synthetic/*.tar.gz
+data/synthetic/large_dataset/
+
+# Allow small sample images (under 10MB typically)
+# But exclude large batch downloads
+data/synthetic/batch_*/
+data/synthetic/generated_*/
+
+# =============================================================================
+# SAGEMAKER LOCAL
+# =============================================================================
+.sagemaker/
+sm-docker/
+
+# =============================================================================
+# LOG FILES
+# =============================================================================
+*.log
+logs/
+log/
+nohup.out
+
+# =============================================================================
+# TEMPORARY FILES
+# =============================================================================
+*.tmp
+*.temp
+temp/
+tmp/
+cache/
+
+# =============================================================================
+# DATABASE FILES
+# =============================================================================
+*.db
+*.sqlite
+*.sqlite3
+
+# =============================================================================
+# LARGE ANNOTATION FILES
+# =============================================================================
+# COCO format annotations can be large
+annotations/large_*
+annotations/*.json.backup
+
+# =============================================================================
+# NODE.JS (if using any web components)
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =============================================================================
+# SPECIFIC TO YOUR PROJECT
+# =============================================================================
+
+# Large AutoDistill outputs
+autodistill_cache/
+grounded_sam_cache/
+
+# Large YOLO outputs
+yolo_outputs/
+ultralytics_cache/
+
+# ECR build context (can be large)
+.docker_build/
+build_context/
+
+# Large test datasets
+test_data/large/
+validation_data/full/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# =============================================================================
+# ALLOW SMALL SAMPLE FILES
+# =============================================================================
+# Use ! to allow specific small files even if they match patterns above
+
+# Allow small sample models for testing (uncomment if needed)
+# !models/sample_model.pt
+# !data/synthetic/sample_*.jpg
+
+# Allow configuration files
+!config/*.yaml
+!config/*.yml
+!config/*.json
+
+# Allow documentation images
+!docs/images/*
+!README_images/*
+
