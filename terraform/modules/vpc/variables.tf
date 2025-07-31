@@ -1,6 +1,6 @@
 variable "name_prefix" {
   description = "Name prefix for resources"
-  type        = string
+  type        = string 
 }
 
 variable "vpc_cidr" {
