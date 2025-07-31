@@ -108,39 +108,39 @@ resource "aws_vpc_endpoint" "s3" {
 # UNCOMMENT THESE WHEN READY TO DEPLOY MODEL
 
 # SageMaker Model (No cost - just metadata)
-# resource "aws_sagemaker_model" "hail_damage_model" {
-#   name             = "${local.name_prefix}-model"
-#   execution_role_arn = module.iam.sagemaker_execution_role_arn
-#
-#   primary_container {
-#     image          = "${module.ecr.ecr_inference_repository_url}:latest"
-#     model_data_url = "s3://${module.s3.s3_bucket_name}/models/model.tar.gz"
-#   }
-#
-#   vpc_config {
-#     security_group_ids = [module.security.sagemaker_security_group_id]
-#     subnets           = module.vpc.public_subnet_ids
-#   }
-# }
+ resource "aws_sagemaker_model" "hail_damage_model" {
+   name             = "${local.name_prefix}-model"
+   execution_role_arn = module.iam.sagemaker_execution_role_arn
+
+   primary_container {
+     image          = "${module.ecr.ecr_inference_repository_url}:latest"
+     model_data_url = "s3://${module.s3.s3_bucket_name}/models/model.tar.gz"
+   }
+
+   vpc_config {
+     security_group_ids = [module.security.sagemaker_security_group_id]
+     subnets           = module.vpc.public_subnet_ids
+   }
+ }
 
 # SageMaker Endpoint Configuration (No cost - just configuration)
-# resource "aws_sagemaker_endpoint_configuration" "hail_damage_config" {
-#   name = "${local.name_prefix}-endpoint-config"
-#
-#   production_variants {
-#     variant_name           = "AllTraffic"
-#     model_name            = aws_sagemaker_model.hail_damage_model.name
-#     initial_instance_count = 1
-#     instance_type         = "ml.t3.medium"  # Cheapest option
-#     initial_variant_weight = 1
-#   }
-# }
+ resource "aws_sagemaker_endpoint_configuration" "hail_damage_config" {
+   name = "${local.name_prefix}-endpoint-config"
+
+   production_variants {
+     variant_name           = "AllTraffic"
+     model_name            = aws_sagemaker_model.hail_damage_model.name
+     initial_instance_count = 1
+     instance_type         = "ml.t3.medium"  # Cheapest option
+     initial_variant_weight = 1
+   }
+ }
 
 # SageMaker Endpoint (COSTS $$ - ~$40-60/month running 24/7)
-# resource "aws_sagemaker_endpoint" "hail_damage_endpoint" {
-#   name                 = "${local.name_prefix}-endpoint"
-#   endpoint_config_name = aws_sagemaker_endpoint_configuration.hail_damage_config.name
-# }
+ resource "aws_sagemaker_endpoint" "hail_damage_endpoint" {
+   name                 = "${local.name_prefix}-endpoint"
+   endpoint_config_name = aws_sagemaker_endpoint_configuration.hail_damage_config.name
+ }
 
 # Outputs
 output "vpc_id" {
