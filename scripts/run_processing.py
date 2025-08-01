@@ -14,7 +14,7 @@ def main():
     parser.add_argument('--image-uri', required=True)
     args = parser.parse_args()
     
-    print("🏗️ Setting up Autodistill processing job...")
+    print("🏗️ Setting up Autodistill processing job (CPU instance)...")
     print(f"📦 Container URI: {args.image_uri}")
     print(f"📂 Input Prefix: s3://{args.bucket}/{args.input_prefix}")
     print(f"📂 Output Prefix: s3://{args.bucket}/{args.output_prefix}")
@@ -25,7 +25,7 @@ def main():
         command=['python3'],
         role=args.role,
         instance_count=1,
-        instance_type='ml.g4dn.xlarge',
+        instance_type='ml.m5.xlarge',  # CPU instance under default quota
         volume_size_in_gb=100,
         max_runtime_in_seconds=3600,
         sagemaker_session=session
@@ -35,21 +35,18 @@ def main():
     print(f"🚀 Starting processing job: {job_name}")
     
     processor.run(
-        code='docker/autodistill/process.py',  # entrypoint script in your repo
+        code='docker/autodistill/process.py',
         job_name=job_name,
         inputs=[
             ProcessingInput(
                 source=f's3://{args.bucket}/{args.input_prefix}',
-                destination='/opt/ml/processing/input',
-                s3_data_type='S3Prefix',
-                s3_input_mode='File'
+                destination='/opt/ml/processing/input'
             )
         ],
         outputs=[
             ProcessingOutput(
                 source='/opt/ml/processing/output',
-                destination=f's3://{args.bucket}/{args.output_prefix}',
-                s3_upload_mode='EndOfJob'
+                destination=f's3://{args.bucket}/{args.output_prefix}'
             )
         ],
         wait=True,
