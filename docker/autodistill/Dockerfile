@@ -34,9 +34,9 @@ RUN pip3 install --no-cache-dir \
 
 # Install autodistill packages (latest working versions)
 RUN pip3 install --no-cache-dir \
-    autodistill==0.1.18 \
-    autodistill-grounded-sam==0.1.5 \
-    autodistill-yolov8==0.1.5
+    autodistill \
+    autodistill-grounded-sam \
+    autodistill-yolov8
 
 # Install additional dependencies
 RUN pip3 install --no-cache-dir \
