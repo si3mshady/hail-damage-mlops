@@ -1,4 +1,4 @@
-# Use official NVIDIA CUDA image - this tag EXISTS and is supported
+# Use Ubuntu 20.04 with Python 3.8 (matches your base system)
 FROM nvidia/cuda:12.9.1-devel-ubuntu20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -18,27 +18,32 @@ RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip
+# Upgrade pip first
 RUN python3 -m pip install --upgrade pip
 
-# Install PyTorch with CUDA support (matching CUDA 12.9)
+# Install core dependencies with COMPATIBLE versions for Python 3.8
 RUN pip3 install --no-cache-dir \
-    torch==2.1.0+cu121 \
-    torchvision==0.16.0+cu121 \
-    torchaudio==2.1.0+cu121 \
-    --index-url https://download.pytorch.org/whl/cu121
+    torch==2.0.1 \
+    torchvision==0.15.2 \
+    numpy==1.24.3
 
-# Install training dependencies
+# Install ultralytics and related packages - use LATEST stable
 RUN pip3 install --no-cache-dir \
-    ultralytics==8.0.230 \
-    mlflow==2.8.1 \
-    boto3==1.34.0 \
-    sagemaker-training==4.6.0 \
-    opencv-python-headless==4.8.1.78 \
-    Pillow==10.0.1 \
-    pyyaml==6.0.1 \
-    matplotlib==3.8.2 \
-    seaborn==0.13.0
+    ultralytics \
+    opencv-python-headless \
+    Pillow
+
+# Install AWS and MLflow packages - use COMPATIBLE versions
+RUN pip3 install --no-cache-dir \
+    mlflow==2.7.1 \
+    boto3 \
+    sagemaker-training \
+    pyyaml
+
+# Install matplotlib version that EXISTS for Python 3.8
+RUN pip3 install --no-cache-dir \
+    "matplotlib>=3.3.0,<3.8.0" \
+    seaborn
 
 # Set working directory
 WORKDIR /opt/ml/code
