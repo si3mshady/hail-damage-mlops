@@ -35,15 +35,23 @@ def main():
     print(f"🚀 Starting processing job: {job_name}")
     
     processor.run(
-        code='docker/autodistill/process.py',   # <-- point to local repo path
-        source_dir='docker/autodistill',         # <-- upload entire folder
+        code='docker/autodistill/process.py',  # entrypoint script in your repo
         job_name=job_name,
-        inputs=[ProcessingInput(
-            source=f's3://{args.bucket}/{args.input_prefix}',
-            destination='/opt/ml/processing/input')],
-        outputs=[ProcessingOutput(
-            source='/opt/ml/processing/output',
-            destination=f's3://{args.bucket}/{args.output_prefix}')],
+        inputs=[
+            ProcessingInput(
+                source=f's3://{args.bucket}/{args.input_prefix}',
+                destination='/opt/ml/processing/input',
+                s3_data_type='S3Prefix',
+                s3_input_mode='File'
+            )
+        ],
+        outputs=[
+            ProcessingOutput(
+                source='/opt/ml/processing/output',
+                destination=f's3://{args.bucket}/{args.output_prefix}',
+                s3_upload_mode='EndOfJob'
+            )
+        ],
         wait=True,
         logs=True
     )
