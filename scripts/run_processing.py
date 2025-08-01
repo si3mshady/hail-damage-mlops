@@ -30,14 +30,16 @@ def main():
         instance_type='ml.g4dn.xlarge',  # GPU instance for GroundedSAM
         volume_size_in_gb=100,
         max_runtime_in_seconds=3600,  # 1 hour timeout
+        command=['python3'],  # Add command parameter
         sagemaker_session=session
     )
     
-    # Run processing job
+    # Run processing job with REQUIRED code parameter
     job_name = f"autodistill-{int(time.time())}"
     print(f"🚀 Starting processing job: {job_name}")
     
     processor.run(
+        code='process.py',  # CRITICAL: This was missing - points to script inside container
         job_name=job_name,
         inputs=[ProcessingInput(
             source=f's3://{args.bucket}/{args.input_prefix}',

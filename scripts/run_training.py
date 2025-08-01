@@ -2,7 +2,6 @@
 import argparse
 import boto3
 import time
-import json
 
 def main():
     parser = argparse.ArgumentParser()
