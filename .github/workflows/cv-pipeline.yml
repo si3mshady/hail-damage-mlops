@@ -1,0 +1,131 @@
+name: hail-damage-cv-pipeline
+
+on:
+  push:
+    paths: 
+      - 'images/**'
+  workflow_dispatch:  # Manual trigger
+
+env:
+  AWS_REGION: us-east-2
+  S3_BUCKET: hail-damage-57htv0-bucket
+  SAGEMAKER_ROLE: arn:aws:iam::564230509626:role/hail-damage-57htv0-sagemaker-role
+  ECR_TRAINING_REPO: 564230509626.dkr.ecr.us-east-2.amazonaws.com/hail-damage-57htv0-training
+  ECR_INFERENCE_REPO: 564230509626.dkr.ecr.us-east-2.amazonaws.com/hail-damage-57htv0-inference
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::564230509626:role/GitHubActionsRole  # You'll need to create this
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install boto3
+
+      - name: Build and push Docker containers
+        run: python scripts/build_and_push.py
+
+  sync-images:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::564230509626:role/GitHubActionsRole
+
+      - name: Sync images to S3
+        run: |
+          echo "📤 Uploading images to S3..."
+          aws s3 sync images/ s3://${{ env.S3_BUCKET }}/raw-images/ --delete
+          echo "✅ Image sync complete"
+
+  run-processing:
+    needs: sync-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::564230509626:role/GitHubActionsRole
+
+      - name: Install dependencies
+        run: |
+          pip install boto3 sagemaker
+
+      - name: Run Autodistill processing
+        run: |
+          python scripts/run_processing.py \
+            --role ${{ env.SAGEMAKER_ROLE }} \
+            --bucket ${{ env.S3_BUCKET }} \
+            --input-prefix raw-images \
+            --output-prefix labeled-dataset \
+            --image-uri ${{ env.ECR_TRAINING_REPO }}:latest
+
+  run-training:
+    needs: run-processing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::564230509626:role/GitHubActionsRole
+
+      - name: Install dependencies
+        run: |
+          pip install boto3
+
+      - name: Run YOLOv8 training
+        run: |
+          python scripts/run_training.py \
+            --role ${{ env.SAGEMAKER_ROLE }} \
+            --bucket ${{ env.S3_BUCKET }} \
+            --data-prefix labeled-dataset \
+            --model-output model-artifacts \
+            --image-uri ${{ env.ECR_INFERENCE_REPO }}:latest
+
+  deploy-endpoint:
+    needs: run-training
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::564230509626:role/GitHubActionsRole
+
+      - name: Install dependencies
+        run: |
+          pip install boto3
+
+      - name: Deploy inference endpoint
+        run: |
+          python scripts/deploy_endpoint.py \
+            --role ${{ env.SAGEMAKER_ROLE }} \
+            --bucket ${{ env.S3_BUCKET }} \
+            --model-prefix model-artifacts
+
