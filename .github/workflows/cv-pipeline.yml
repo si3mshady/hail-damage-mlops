@@ -2,7 +2,7 @@ name: hail-damage-cv-pipeline
 
 on:
   push:
-    paths: 
+    paths:
       - 'images/**'
   workflow_dispatch:
 
@@ -28,24 +28,19 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Autodistill container
         run: |
-          echo "🏗️ Building Autodistill container..."
           cd docker/autodistill
           docker build -t $ECR_TRAINING_REPO:latest .
           docker push $ECR_TRAINING_REPO:latest
-          echo "✅ Autodistill container pushed"
 
       - name: Build and push Training container
         run: |
-          echo "🏗️ Building Training container..."
           cd docker/training
           docker build -t $ECR_INFERENCE_REPO:latest .
           docker push $ECR_INFERENCE_REPO:latest
-          echo "✅ Training container pushed"
 
   sync-images:
     needs: build-and-push
@@ -63,9 +58,7 @@ jobs:
 
       - name: Sync images to S3
         run: |
-          echo "📤 Uploading images to S3..."
           aws s3 sync images/ s3://${{ env.S3_BUCKET }}/raw-images/ --delete
-          echo "✅ Image sync complete"
 
   run-processing:
     needs: sync-images
@@ -82,8 +75,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install dependencies
-        run: |
-          pip install boto3 sagemaker
+        run: pip install boto3 sagemaker
 
       - name: Run Autodistill processing
         run: |
@@ -109,8 +101,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install dependencies
-        run: |
-          pip install boto3
+        run: pip install boto3
 
       - name: Run YOLOv8 training
         run: |
@@ -136,8 +127,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install dependencies
-        run: |
-          pip install boto3
+        run: pip install boto3
 
       - name: Deploy inference endpoint
         run: |

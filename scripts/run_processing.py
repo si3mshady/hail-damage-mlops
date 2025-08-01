@@ -8,50 +8,42 @@ from sagemaker import Session
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--role', required=True)
-    parser.add_argument('--bucket', required=True) 
+    parser.add_argument('--bucket', required=True)
     parser.add_argument('--input-prefix', required=True)
     parser.add_argument('--output-prefix', required=True)
     parser.add_argument('--image-uri', required=True)
     args = parser.parse_args()
     
     print("🏗️ Setting up Autodistill processing job...")
-    print(f"📦 Container: {args.image_uri}")
-    print(f"📂 Input: s3://{args.bucket}/{args.input_prefix}")
-    print(f"📂 Output: s3://{args.bucket}/{args.output_prefix}")
+    print(f"📦 Container URI: {args.image_uri}")
+    print(f"📂 Input Prefix: s3://{args.bucket}/{args.input_prefix}")
+    print(f"📂 Output Prefix: s3://{args.bucket}/{args.output_prefix}")
     
-    # Create SageMaker session
     session = Session()
-    
-    # Create processor with GPU instance for Autodistill
     processor = ScriptProcessor(
         image_uri=args.image_uri,
+        command=['python3'],
         role=args.role,
         instance_count=1,
-        instance_type='ml.g4dn.xlarge',  # GPU instance for GroundedSAM
+        instance_type='ml.g4dn.xlarge',
         volume_size_in_gb=100,
-        max_runtime_in_seconds=3600,  # 1 hour timeout
-        command=['python3'],  # Add command parameter
+        max_runtime_in_seconds=3600,
         sagemaker_session=session
     )
     
-    # Run processing job with REQUIRED code parameter
     job_name = f"autodistill-{int(time.time())}"
     print(f"🚀 Starting processing job: {job_name}")
     
     processor.run(
-        code='process.py',  # CRITICAL: This was missing - points to script inside container
+        code='docker/autodistill/process.py',   # <-- point to local repo path
+        source_dir='docker/autodistill',         # <-- upload entire folder
         job_name=job_name,
         inputs=[ProcessingInput(
             source=f's3://{args.bucket}/{args.input_prefix}',
-            destination='/opt/ml/processing/input',
-            s3_data_type='S3Prefix',
-            s3_input_mode='File'
-        )],
+            destination='/opt/ml/processing/input')],
         outputs=[ProcessingOutput(
             source='/opt/ml/processing/output',
-            destination=f's3://{args.bucket}/{args.output_prefix}',
-            s3_upload_mode='EndOfJob'
-        )],
+            destination=f's3://{args.bucket}/{args.output_prefix}')],
         wait=True,
         logs=True
     )
